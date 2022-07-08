@@ -1,11 +1,11 @@
 from sklearn import metrics
 
-class evaluator:
+class Evaluator:
     regression_metrics= ["MEAN SQUARED ERROR","EXPLAINED VARIANCE", "MEAN ABSOLUTE ERROR", "MEAN SQUARED LOG ERROR", "MEDIAN ABSOLUTE ERROR","R2 SCORE","ROOT MEAN SQUARED ERROR"]
-    regression_method =   ["getMSE","getEV","getMAE","getMSLE","getMEDIAN_ABSOLUTE_ERROR","getR2_SCORE","getRMSE"]
+    regression_method =   ["get_mse","get_ev","get_mae","get_msle","get_median_absolute_error","get_r2_score","get_rmse"]
 
-    classification_metrics = ["ConfusionMatrix","AUC","Precision","Recall","Accuracy","F1_score","KS"]
-    classification_method = ["getConfusionMatrix","getAUC","getPrecision","getRecall","getAccuracy","getF1_score","getKS"]
+    classification_metrics = ["AUC","Precision","Recall","Accuracy","F1_score","KS"]
+    classification_method = ["get_auc","get_precision","get_recall","get_accuracy","get_f1_score","get_ks"]
     need_prob = ["AUC","KS"]
 
 
@@ -18,7 +18,7 @@ class evaluator:
         MSE
     """
     @staticmethod
-    def getConfusionMatrix(y,y_hat):
+    def get_confusionMatrix(y,y_hat):
         """
         :param y: real label
         :param y_hat: predicted label
@@ -29,7 +29,7 @@ class evaluator:
         return metrics.confusion_matrix(y,y_hat)
 
     @staticmethod
-    def getAUC(y,y_pred_prob):
+    def get_auc(y,y_pred_prob):
         """
         :param y: real label
         :param y_pred_prob:  probability of true
@@ -38,7 +38,7 @@ class evaluator:
         return metrics.roc_auc_score(y,y_pred_prob)
 
     @staticmethod
-    def getPrecision(y,y_hat):
+    def get_precision(y,y_hat):
         """
         :param y: real label
         :param y_hat: predicted label
@@ -47,7 +47,7 @@ class evaluator:
         return metrics.precision_score(y,y_hat)
 
     @staticmethod
-    def getRecall(y,y_hat):
+    def get_recall(y,y_hat):
         """
         :param y: real label
         :param y_hat: predicted label
@@ -56,7 +56,7 @@ class evaluator:
         return metrics.recall_score(y,y_hat)
 
     @staticmethod
-    def getAccuracy(y,y_hat):
+    def get_accuracy(y,y_hat):
         """
         :param y: real label
         :param y_hat: predicted label
@@ -65,7 +65,7 @@ class evaluator:
         return metrics.accuracy_score(y, y_hat)
 
     @staticmethod
-    def getF1_score(y,y_hat):
+    def get_f1_score(y,y_hat):
         """
         :param y: real label
         :param y_hat: predicted label
@@ -74,7 +74,17 @@ class evaluator:
         return metrics.f1_score(y, y_hat)
 
     @staticmethod
-    def getKS(y_test, y_pred_prob):
+    def get_roc(y_test,y_pred_prob):
+        roc = {}
+        fpr, tpr, thresholds = metrics.roc_curve(y_test, y_pred_prob)
+        roc["fpr"] = fpr
+        roc["tpr"] = tpr
+        roc["thresholds"] = thresholds
+        return roc
+
+
+    @staticmethod
+    def get_ks(y_test, y_pred_prob):
         '''
         calculate value ks, list fpr , list tpr , list thresholds
 
@@ -86,7 +96,7 @@ class evaluator:
         '''
         fpr, tpr, thresholds = metrics.roc_curve(y_test, y_pred_prob)
         ks = max(tpr - fpr)
-        return fpr, tpr, thresholds, ks
+        return ks
 
 
     """
@@ -99,7 +109,7 @@ class evaluator:
         ROOT_MEAN_SQUARED_ERROR
     """
     @staticmethod
-    def getMSE(y, y_hat):
+    def get_mse(y, y_hat):
         """
         :param y: real y
         :param y_hat: predicted t
@@ -110,7 +120,7 @@ class evaluator:
         """
         return metrics.mean_squared_error(y, y_hat)
     @staticmethod
-    def getEV(y,y_hat):
+    def get_ev(y,y_hat):
         """
         :param y: real y
         :param y_hat: predicted t
@@ -121,7 +131,7 @@ class evaluator:
         return metrics.explained_variance_score(y,y_hat)
 
     @staticmethod
-    def getMAE(y,y_hat):
+    def get_mae(y,y_hat):
         """
         :param y: real y
         :param y_hat: predicted t
@@ -132,7 +142,7 @@ class evaluator:
         return metrics.mean_absolute_error(y,y_hat)
 
     @staticmethod
-    def getMSLE(y,y_hat):
+    def get_msle(y,y_hat):
         """
         :param y: real y
         :param y_hat: predicted t
@@ -143,7 +153,7 @@ class evaluator:
         return metrics.mean_squared_log_error(y,y_hat)
 
     @staticmethod
-    def getMEDIAN_ABSOLUTE_ERROR(y,y_hat):
+    def get_median_absolute_error(y,y_hat):
         """
         :param y: real y
         :param y_hat: predicted t
@@ -154,7 +164,7 @@ class evaluator:
         return metrics.median_absolute_error(y,y_hat)
 
     @staticmethod
-    def getR2_SCORE(y,y_hat):
+    def get_r2_score(y,y_hat):
         """
         :param y: real y
         :param y_hat: predicted t
@@ -166,7 +176,7 @@ class evaluator:
         return metrics.r2_score(y,y_hat)
 
     @staticmethod
-    def getRMSE(y,y_hat):
+    def get_rmse(y,y_hat):
         """
         :param y: real y
         :param y_hat: predicted t
@@ -174,49 +184,71 @@ class evaluator:
                 the predicted results and the real data set. The smaller the value is, the better the fitting
                 effect is.
         """
-        return pow(evaluator.getMSE(y,y_hat),2)
+        return pow(Evaluator.get_mse(y,y_hat),2)
 
-
-class regression_eva:
     @staticmethod
-    def getResult(y,y_hat):
+    def write_csv(path,eval_train,eval_test=None):
+        with open(path,'w') as f:
+            header = list(eval_train.keys())
+            values = []
+            for i in eval_train.values():
+                values.append(str(i))
+            f.write('\t,')
+            f.write(",".join(header))
+            f.write("\n")
+            f.write("train,")
+            f.write(",".join(values))
+            if eval_test:
+                f.write("\n")
+                f.write("test,")
+                values = []
+                for i in eval_test.values():
+                    values.append(str(i))
+                f.write(','.join(values))
+
+
+class Regression_eva:
+    @staticmethod
+    def get_result(y,y_hat,path = "evaluation.csv"):
         """
         :param y: real y
         :param y_hat:predicted y
         :return:regression metricss all supported.
         """
-        res = []
-        for i in range(len(evaluator.regression_metrics)):
-            metrics = evaluator.regression_metrics[i]
-            method = evaluator.regression_method[i]
-            if hasattr(evaluator, method):
-                f = getattr(evaluator, method)
-                re = metrics + ":" + str(f(y, y_hat))
+        res = {}
+        for i in range(len(Evaluator.regression_metrics)):
+            metrics = Evaluator.regression_metrics[i]
+            method = Evaluator.regression_method[i]
+            if hasattr(Evaluator, method):
+                f = getattr(Evaluator, method)
+                res[metrics] = f(y, y_hat)
             else:
-                re = f"{method} is not support。"
-            res.append(re)
+                res[metrics] = f"{method} is not support。"
+
+        Evaluator.write_csv(path,res)
         return res
 
-class classification_eva:
+class Classification_eva:
     @staticmethod
-    def getResult(y,y_hat,y_prob):
+    def get_result(y,y_hat,y_prob,path = "evaluation.csv"):
         """
                 :param y: real y
                 :param y_hat:predicted y
                 :return:classification metricss all supported.
                 """
-        res = []
-        for i in range(len(evaluator.classification_metrics)):
-            metrics = evaluator.classification_metrics[i]
-            method = evaluator.classification_method[i]
-            if hasattr(evaluator, method):
-                f = getattr(evaluator, method)
-                if (metrics in evaluator.need_prob):
-                    mere = str(f(y, y_prob))
+        res = {}
+        for i in range(len(Evaluator.classification_metrics)):
+            metrics = Evaluator.classification_metrics[i]
+            method = Evaluator.classification_method[i]
+            if hasattr(Evaluator, method):
+                f = getattr(Evaluator, method)
+                if (metrics in Evaluator.need_prob):
+                    mere = f(y, y_prob)
                 else:
-                    mere = str(f(y, y_hat))
-                re = metrics + ":" + mere
+                    mere = f(y, y_hat)
+                res[metrics] = mere
             else:
-                re = f"{method} is not support。"
-            res.append(re)
-        return(res)
+                res[metrics] = f"{method} is not support。"
+        Evaluator.write_csv(path,res)
+        return res
+
